@@ -1,0 +1,39 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+bin/
+dist/
+
+# Go build cache
+*.test
+*.out
+
+# Go module download cache
+vendor/
+
+# Air (live reload) temp files
+tmp/
+.air.toml
+
+# Environment variables — NEVER commit this
+.env
+.env.*
+!.env.example
+
+# SQLC generated (optional, some teams commit this)
+# db/sqlc/*.go
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
