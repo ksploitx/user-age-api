@@ -37,3 +37,6 @@ Thumbs.db
 # Logs
 *.log
 logs/
+
+# Personal notes — not for public eyes
+per-guide.md
