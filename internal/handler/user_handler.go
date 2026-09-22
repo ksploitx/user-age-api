@@ -13,15 +13,23 @@ import (
 )
 
 type UserHandler struct {
-	service  *service.UserService
+	service  service.UserService
 	validate *validator.Validate
 }
 
-func NewUserHandler(svc *service.UserService) *UserHandler {
+func NewUserHandler(svc service.UserService) *UserHandler {
 	return &UserHandler{
 		service:  svc,
 		validate: validator.New(),
 	}
+}
+
+func parseID(c *fiber.Ctx) (int32, error) {
+	id, err := strconv.Atoi(c.Params("id"))
+	if err != nil {
+		return 0, err
+	}
+	return int32(id), nil
 }
 
 func (h *UserHandler) Create(c *fiber.Ctx) error {
@@ -44,14 +52,14 @@ func (h *UserHandler) Create(c *fiber.Ctx) error {
 }
 
 func (h *UserHandler) GetByID(c *fiber.Ctx) error {
-	id, err := strconv.Atoi(c.Params("id"))
+	id, err := parseID(c)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid id"})
 	}
 
-	user, err := h.service.GetByID(c.Context(), int32(id))
+	user, err := h.service.GetByID(c.Context(), id)
 	if err != nil {
-		logger.Log.Error("user not found", zap.Int("id", id))
+		logger.Log.Error("user not found", zap.Int32("id", id))
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "user not found"})
 	}
 
@@ -59,7 +67,7 @@ func (h *UserHandler) GetByID(c *fiber.Ctx) error {
 }
 
 func (h *UserHandler) Update(c *fiber.Ctx) error {
-	id, err := strconv.Atoi(c.Params("id"))
+	id, err := parseID(c)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid id"})
 	}
@@ -72,7 +80,7 @@ func (h *UserHandler) Update(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	user, err := h.service.Update(c.Context(), int32(id), req)
+	user, err := h.service.Update(c.Context(), id, req)
 	if err != nil {
 		logger.Log.Error("failed to update user", zap.Error(err))
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "could not update user"})
@@ -82,12 +90,12 @@ func (h *UserHandler) Update(c *fiber.Ctx) error {
 }
 
 func (h *UserHandler) Delete(c *fiber.Ctx) error {
-	id, err := strconv.Atoi(c.Params("id"))
+	id, err := parseID(c)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid id"})
 	}
 
-	if err := h.service.Delete(c.Context(), int32(id)); err != nil {
+	if err := h.service.Delete(c.Context(), id); err != nil {
 		logger.Log.Error("failed to delete user", zap.Error(err))
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "could not delete user"})
 	}
