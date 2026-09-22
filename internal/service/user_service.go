@@ -8,12 +8,20 @@ import (
 	"github.com/ksploitx/user-age-api/internal/repository"
 )
 
-type UserService struct {
-	repo *repository.UserRepository
+type UserService interface {
+	Create(ctx context.Context, req models.CreateUserRequest) (models.UserResponse, error)
+	GetByID(ctx context.Context, id int32) (models.UserDetailResponse, error)
+	Update(ctx context.Context, id int32, req models.UpdateUserRequest) (models.UserResponse, error)
+	Delete(ctx context.Context, id int32) error
+	List(ctx context.Context) ([]models.UserDetailResponse, error)
 }
 
-func NewUserService(repo *repository.UserRepository) *UserService {
-	return &UserService{repo: repo}
+type userService struct {
+	repo repository.UserRepository
+}
+
+func NewUserService(repo repository.UserRepository) UserService {
+	return &userService{repo: repo}
 }
 
 func calculateAge(dob time.Time) int {
@@ -25,7 +33,7 @@ func calculateAge(dob time.Time) int {
 	return age
 }
 
-func (s *UserService) Create(ctx context.Context, req models.CreateUserRequest) (models.UserResponse, error) {
+func (s *userService) Create(ctx context.Context, req models.CreateUserRequest) (models.UserResponse, error) {
 	dob, err := time.Parse("2006-01-02", req.DOB)
 	if err != nil {
 		return models.UserResponse{}, err
@@ -43,7 +51,7 @@ func (s *UserService) Create(ctx context.Context, req models.CreateUserRequest) 
 	}, nil
 }
 
-func (s *UserService) GetByID(ctx context.Context, id int32) (models.UserDetailResponse, error) {
+func (s *userService) GetByID(ctx context.Context, id int32) (models.UserDetailResponse, error) {
 	user, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return models.UserDetailResponse{}, err
@@ -57,7 +65,7 @@ func (s *UserService) GetByID(ctx context.Context, id int32) (models.UserDetailR
 	}, nil
 }
 
-func (s *UserService) Update(ctx context.Context, id int32, req models.UpdateUserRequest) (models.UserResponse, error) {
+func (s *userService) Update(ctx context.Context, id int32, req models.UpdateUserRequest) (models.UserResponse, error) {
 	dob, err := time.Parse("2006-01-02", req.DOB)
 	if err != nil {
 		return models.UserResponse{}, err
@@ -75,11 +83,11 @@ func (s *UserService) Update(ctx context.Context, id int32, req models.UpdateUse
 	}, nil
 }
 
-func (s *UserService) Delete(ctx context.Context, id int32) error {
+func (s *userService) Delete(ctx context.Context, id int32) error {
 	return s.repo.Delete(ctx, id)
 }
 
-func (s *UserService) List(ctx context.Context) ([]models.UserDetailResponse, error) {
+func (s *userService) List(ctx context.Context) ([]models.UserDetailResponse, error) {
 	users, err := s.repo.List(ctx)
 	if err != nil {
 		return nil, err
